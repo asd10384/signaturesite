@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="kr">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시그니쳐사이트</title>
+    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+  </head>
+  <body>
+    <div class="blank"></div>
+    <div class="main"></div>
+    <div class="list"></div>
+
+    <script>
+      $(`.list`).load('./signature.json', (txt, status) => {
+        if (status == "error") {
+          $(`.main`).html(`<h1>파일을 불러올수 없음</h1>`);
+        } else {
+          let list = [{ name: [""], url: "" }];
+          list = eval(txt);
+          var text = "";
+          list.forEach((val) => {
+            text += `<div class="file"><div class="text">NAME : [ "${val.name.join('", "')}" ]<br/>URL : ${val.url}</div><div class="audio"><audio src="file/${val.url}.mp3" controls></audio></div></div>\n`;
+          });
+          $(`.main`).html(text);
+        }
+      });
+    </script>
+    <style>
+      body {
+        text-align: center;
+        color: white;
+        background-color: rgb(65, 65, 65);
+      }
+      .main {
+        display: block;
+        margin-top: 80px;
+      }
+      .list {
+        display: none;
+      }
+      .text {
+        margin-bottom: 10px;
+      }
+      .audio {
+        margin-bottom: 30px;
+      }
+    </style>
+  </body>
+</html>
