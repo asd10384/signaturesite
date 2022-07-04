@@ -4,28 +4,76 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+
     <title>시그니쳐사이트</title>
     <script src="https://code.jquery.com/jquery-latest.min.js"></script>
   </head>
   <body>
     <div class="blank"></div>
-    <div class="main"></div>
-    <div class="list"></div>
+    <div class="main">
+      <div class="file">
+        <div class="text">
+          <!-- NAME : [ "${val.name.join('", "')}" ]
+          <br/>
+          URL : ${val.url} -->
+          로딩중...
+        </div>
+        <!-- <div class="audio">
+          <audio src="file/${val.url}.mp3" controls></audio>
+        </div> -->
+      </div>
+      <div class="list"></div>
+    </div>
 
     <script>
+      const parmas = location.search.split(/[?&]/).slice(1).map(paramPair => paramPair.split(/=(.+)?/).slice(0,2)).reduce((obj, pairArray) => {
+        obj[pairArray[0]] = pairArray[1];
+        return obj;
+      }, {});
+      
       $(`.list`).load('./signature.json', (txt, status) => {
-        if (status == "error") {
-          $(`.main`).html(`<h1>파일을 불러올수 없음</h1>`);
-        } else {
-          let list = [{ name: [""], url: "" }];
-          list = eval(txt);
-          var text = "";
-          list.forEach((val) => {
-            text += `<div class="file"><div class="text">NAME : [ "${val.name.join('", "')}" ]<br/>URL : ${val.url}</div><div class="audio"><audio src="file/${val.url}.mp3" controls></audio></div></div>\n`;
-          });
-          $(`.main`).html(text);
-        }
-      });
+          if (status == "error") {
+            $(`.main`).html(`<h1>파일을 불러올수 없음</h1>`);
+          } else {
+            if (parmas.folder) {
+              let list = [{ name: [""], url: "" }];
+              list = eval(txt);
+              var text = `<div class="title">TTS개수: ${list.filter((val) => {
+                let sp = val.url.split("/");
+                if (sp.length === 2 && decodeURI(parmas.folder) === sp[0]) return true;
+                else if (decodeURI(parmas.folder) === "기타" && sp.length < 2) return true;
+                return false;
+              }).length}<br/><a class="atag" href="/">돌아가기</a></div>\n`;
+              let textlength = text.length;
+              list.forEach((val) => {
+                let sp = val.url.split("/");
+                if (sp.length === 2 && decodeURI(parmas.folder) === sp[0]) text += `<div class="file"><div class="text">NAME : [ "${val.name.join('", "')}" ]<br/>URL : ${val.url}</div><div class="audio"><audio src="file/${val.url}.mp3" controls></audio></div></div>\n`;
+                else if (decodeURI(parmas.folder) === "기타" && sp.length < 2) text += `<div class="file"><div class="text">NAME : [ "${val.name.join('", "')}" ]<br/>URL : ${val.url}</div><div class="audio"><audio src="file/${val.url}.mp3" controls></audio></div></div>\n`;
+              });
+              if (text.length === textlength) text += `<div class="file"><div class="text">TTS 없음</div></div>\n`;
+              $(`.main`).html(text);
+            } else {
+              let list = [{ name: [""], url: "" }];
+              list = eval(txt);
+              var text = `<div class="title">폴더<br/>(TTS총개수: ${list.length}개)</div>\n`;
+              var folderlist = [];
+              list.forEach((val) => {
+                let sp = val.url.split("/");
+                if (sp.length === 2 && !folderlist.includes(sp[0])) {
+                  folderlist.push(sp[0]);
+                  text += `<div class="file"><div class="text"><a class="atag" href="?folder=${sp[0]}">${sp[0]}</a></div></div>\n`;
+                }
+              });
+              text += `<div class="file"><div class="text"><a class="atag" href="?folder=기타">기타</a></div></div>\n`;
+              $(`.main`).html(text);
+            }
+          }
+        });
     </script>
     <style>
       body {
@@ -36,12 +84,27 @@
       .main {
         display: block;
         margin-top: 80px;
+        margin-bottom: 80px;
+      }
+      .title {
+        font-size: 35px;
+        font-weight: bold;
+        margin-bottom: 20px;
       }
       .list {
         display: none;
       }
       .text {
         margin-bottom: 10px;
+      }
+      .atag {
+        font-size: 20px;
+        text-decoration: none;
+        color: white;
+      }
+      .atag:hover {
+        font-size: 22px;
+        color: rgba(255, 255, 255, 0.5);
       }
       .audio {
         margin-bottom: 30px;
